@@ -13,23 +13,29 @@ plugins {
 }
 
 kotlin {
-    jvm()
+    // jvm()
     androidTarget {
         publishLibraryVariants("release")
-        @OptIn(ExperimentalKotlinGradlePluginApi::class)
-        compilerOptions {
-            jvmTarget.set(JvmTarget.JVM_1_8)
+        // @OptIn(ExperimentalKotlinGradlePluginApi::class)
+        // compilerOptions {
+        //     jvmTarget.set(JvmTarget.JVM_1_8)
+        // }
+        compilations.all {
+            kotlinOptions {
+                jvmTarget = "1.8"
+            }
         }
     }
     iosX64()
     iosArm64()
     iosSimulatorArm64()
-    linuxX64()
+    // linuxX64()
 
     sourceSets {
         val commonMain by getting {
             dependencies {
                 //put your multiplatform dependencies here
+                implementation(project(":muscat-core"))
             }
         }
         val commonTest by getting {
@@ -41,7 +47,7 @@ kotlin {
 }
 
 android {
-    namespace = "io.github.atsushieno.multiplatform.library.template"
+    namespace = "io.github.hkusu.muscat.logging"
     compileSdk = libs.versions.android.compileSdk.get().toInt()
     defaultConfig {
         minSdk = libs.versions.android.minSdk.get().toInt()

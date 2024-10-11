@@ -14,5 +14,6 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "multiplatform-library-template-nexus-publisher"
-include(":library")
+rootProject.name = "Muscat"
+include(":muscat-core")
+include(":muscat-logging")

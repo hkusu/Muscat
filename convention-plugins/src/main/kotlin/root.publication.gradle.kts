@@ -3,8 +3,8 @@ plugins {
 }
 
 allprojects {
-    group = "io.github.atsushieno.multiplatform-library-template-nexus-publisher"
-    version = "0.0.2"
+    group = "io.github.hkusu.muscat"
+    version = "0.1.0"
 }
 
 nexusPublishing {

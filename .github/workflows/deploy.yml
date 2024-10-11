@@ -20,16 +20,16 @@ jobs:
     strategy:
       matrix:
         include:
-          - target: publishIosArm64PublicationToMavenCentralRepository
-            os: macos-latest
-          - target: publishAndroidReleasePublicationToMavenCentralRepository
-            os: ubuntu-latest
-          - target: publishJvmPublicationToMavenCentralRepository
-            os: ubuntu-latest
-          - target: publishLinuxX64PublicationToMavenCentralRepository
-            os: ubuntu-latest
+          # - target: publishIosArm64PublicationToMavenCentralRepository
+          #   os: macos-latest
+          # - target: publishAndroidReleasePublicationToMavenCentralRepository
+          #   os: ubuntu-latest
+          # - target: publishJvmPublicationToMavenCentralRepository
+          #   os: ubuntu-latest
+          # - target: publishLinuxX64PublicationToMavenCentralRepository
+          #   os: ubuntu-latest
           - target: publishKotlinMultiplatformPublicationToMavenCentralRepository
-            os: ubuntu-latest
+            os: macos-latest
     runs-on: ${{ matrix.os }}
     steps:
     - uses: actions/checkout@v3
@@ -59,4 +59,3 @@ jobs:
           -PsigningInMemoryKeyId=${{secrets.OSSRH_GPG_SECRET_KEY_ID}}
           -PsigningInMemoryPassword=${{secrets.OSSRH_GPG_SECRET_KEY_PASSWORD}}
           ${{ matrix.target }}
-

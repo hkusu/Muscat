@@ -21,9 +21,9 @@ publishing {
 
         // Provide artifacts information required by Maven Central
         pom {
-            name.set("Kotlin Multiplatform library for Nexus Portal Publisher API")
-            description.set("Stub library to test deployment to Maven Central (suited for Sonatype Nexus Portal Publisher API)")
-            url.set("https://github.com/atsushieno/multiplatform-library-template-nexus-publisher")
+            name.set("Muscat")
+            description.set("Kotlin Multiplatform Flux framework")
+            url.set("https://github.com/hkusu/Muscat")
 
             licenses {
                 license {
@@ -33,14 +33,14 @@ publishing {
             }
             developers {
                 developer {
-                    id.set("atsushieno")
-                    name.set("Atsushi Eno")
-                    organization.set("atsushieno")
-                    organizationUrl.set("https://atsushieno.github.io")
+                    id.set("hkusu")
+                    name.set("Hiroyuki Kusu")
+                    organization.set("hkusu")
+                    organizationUrl.set("https://hkusu.github.io")
                 }
             }
             scm {
-                url.set("https://github.com/atsushieno/multiplatform-library-template-nexus-publisher")
+                url.set("https://github.com/hkusu/Muscat")
             }
         }
     }
