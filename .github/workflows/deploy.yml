@@ -28,7 +28,9 @@ jobs:
           #   os: ubuntu-latest
           # - target: publishLinuxX64PublicationToMavenCentralRepository
           #   os: ubuntu-latest
-          - target: publishKotlinMultiplatformPublicationToMavenCentralRepository
+          # - target: publishKotlinMultiplatformPublicationToMavenCentralRepository
+          #   os: ubuntu-latest
+          - target: publish
             os: macos-latest
     runs-on: ${{ matrix.os }}
     steps:
