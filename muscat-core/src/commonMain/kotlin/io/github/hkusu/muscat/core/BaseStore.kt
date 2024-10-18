@@ -59,7 +59,7 @@ abstract class BaseStore<S : State, A : Action, E : Event>(
 
     protected open suspend fun onDispatch(state: S, action: A, emit: EventEmit<E>): S = state
 
-    protected open suspend fun onError(state: S, throwable: Throwable, emit: EventEmit<E>): S = state
+    protected open suspend fun onError(state: S, error: Throwable, emit: EventEmit<E>): S = state
 
     protected fun dispose() {
         coroutineScope.cancel()
