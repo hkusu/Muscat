@@ -14,7 +14,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
-abstract class BaseStore<S : State, A : Action, E : Event>(
+@Suppress("unused")
+open class DefaultStore<S : State, A : Action, E : Event>(
     private val initialState: S,
     private val coroutineScope: CoroutineScope = CoroutineScope(Dispatchers.Default + SupervisorJob()),
 ) : Store<S, A, E> {
