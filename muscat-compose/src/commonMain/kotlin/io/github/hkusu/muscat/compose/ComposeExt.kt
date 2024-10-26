@@ -14,7 +14,7 @@ import kotlinx.coroutines.flow.flowOf
 
 @Suppress("unused")
 @Composable
-inline fun <reified S : State> Contract<*, *, *>.render(block: S.() -> Unit) {
+inline fun <reified S : State> Handle<*, *, *>.render(block: S.() -> Unit) {
     if (state is S) {
         block(state)
     }
@@ -22,7 +22,7 @@ inline fun <reified S : State> Contract<*, *, *>.render(block: S.() -> Unit) {
 
 @Suppress("unused")
 @Composable
-inline fun <reified E : Event> Contract<*, *, *>.handle(crossinline block: E.() -> Unit) {
+inline fun <reified E : Event> Handle<*, *, *>.on(crossinline block: E.() -> Unit) {
     LaunchedEffect(Unit) {
         event.filter { it is E }.collect {
             block(it as E)
@@ -30,7 +30,7 @@ inline fun <reified E : Event> Contract<*, *, *>.handle(crossinline block: E.() 
     }
 }
 
-data class Contract<S : State, A : Action, E : Event>(
+data class Handle<S : State, A : Action, E : Event>(
     val state: S,
     val dispatch: (A) -> Unit = {},
     val event: Flow<E> = flowOf(),
@@ -38,9 +38,9 @@ data class Contract<S : State, A : Action, E : Event>(
 
 @Suppress("unused")
 @Composable
-fun <S : State, A : Action, E : Event> contract(
+fun <S : State, A : Action, E : Event> handle(
     store: Store<S, A, E>,
-): Contract<S, A, E> {
+): Handle<S, A, E> {
     val state by store.state.collectAsState()
-    return Contract(state = state, dispatch = store::dispatch, event = store.event)
+    return Handle(state = state, dispatch = store::dispatch, event = store.event)
 }
