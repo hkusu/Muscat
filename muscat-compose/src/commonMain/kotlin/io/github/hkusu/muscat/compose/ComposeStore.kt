@@ -13,10 +13,10 @@ import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.flowOf
 
 @Suppress("unused")
-class ComposeStore<S : State, A : Action, E : Event>(
+class ComposeStore<S : State, A : Action, E : Event> private constructor(
     val state: S,
-    val dispatch: (A) -> Unit = {},
-    val event: Flow<E> = flowOf(),
+    val dispatch: (A) -> Unit,
+    val event: Flow<E>,
 ) {
     @Composable
     inline fun <reified S2 : S> render(block: S2.() -> Unit) {
@@ -33,11 +33,29 @@ class ComposeStore<S : State, A : Action, E : Event>(
             }
         }
     }
+
+    companion object {
+        @Composable
+        internal fun <S : State, A : Action, E : Event> create(store: Store<S, A, E>): ComposeStore<S, A, E> {
+            val state by store.state.collectAsState()
+            return ComposeStore(state = state, dispatch = store::dispatch, event = store.event)
+        }
+
+        @Composable
+        internal fun <S : State, A : Action, E : Event> create(state: S): ComposeStore<S, A, E> {
+            return ComposeStore(state = state, dispatch = {}, event = flowOf())
+        }
+    }
 }
 
 @Suppress("unused")
 @Composable
-fun <S : State, A : Action, E : Event> Store<S, A, E>.composeStore(): ComposeStore<S, A, E> {
-    val state by state.collectAsState()
-    return ComposeStore(state = state, dispatch = ::dispatch, event = event)
+fun <S : State, A : Action, E : Event> composeStore(store: Store<S, A, E>): ComposeStore<S, A, E> {
+    return ComposeStore.create(store = store)
+}
+
+@Suppress("unused")
+@Composable
+fun <S : State, A : Action, E : Event> previewComposeStore(state: S): ComposeStore<S, A, E> {
+    return ComposeStore.create(state = state)
 }
