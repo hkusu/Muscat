@@ -45,7 +45,7 @@ class YourActivity : ComponentActivity() {
 
         setContent {
             // create ComposeStore instance
-            val store = composeStore(mainViewModel.store)
+            val store = composeStore(YourViewModel.store)
         
             MyApplicationTheme {
                 Surface(
@@ -112,23 +112,23 @@ store.handle<YourEvent.ShowToast> {
 }
 ```
 
-You can also specify the parent type.
+Event properties can be accessed with `this`.
+
+You can also subscribe to parent types.
 
 ```
 store.handle<YourEvent> {
     when (this) {
-        is MainEvent.ShowToast -> {
+        is YourEvent.ShowToast -> {
           // do something..
         }
-        is MainEvent.GoBack -> {
+        is YourEvent.GoBack -> {
           // do something..
         }
         // ...
     }
 }
 ```
-
-Event properties can be accessed with `this`.
 
 #### preview on IDE
 
@@ -142,7 +142,7 @@ fun SomePreview() {
     MyApplicationTheme {
         YourChildComposableComponent(
             store = previewComposeStore(
-                state = MainState.Stable,
+                state = YourState.Stable,
             ),
         )
     }
