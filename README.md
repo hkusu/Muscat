@@ -130,7 +130,7 @@ store.handle<YourEvent> {
 }
 ```
 
-#### preview on IDE
+#### Preview on IDE
 
 Use `previewComposeStore()` function.
 Specify the target state using the method argument.
