@@ -82,7 +82,7 @@ store.render<YourState.Stable> {
 }
 ```
 
-State properties can be accessed with `this`.
+State properties can be accessed with `this` scope.
 
 ```
 store.render<YourState.Stable> {
@@ -112,7 +112,7 @@ store.handle<YourEvent.ShowToast> {
 }
 ```
 
-Event properties can be accessed with `this`.
+Event properties can be accessed with `this` scope.
 
 You can also subscribe to parent types.
 
