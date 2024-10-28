@@ -7,7 +7,6 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.androidLibrary)
-    alias(libs.plugins.compose.compiler)
     id("module.publication")
     alias(libs.plugins.vanniktech.maven.publish)
     alias(libs.plugins.dokka)
@@ -22,11 +21,9 @@ kotlin {
             jvmTarget.set(JvmTarget.JVM_1_8)
         }
     }
-    // FIXME: comment out iOS because build error
-    // iosX64()
-    // iosArm64()
-    // iosSimulatorArm64()
-
+    iosX64()
+    iosArm64()
+    iosSimulatorArm64()
     // linuxX64()
 
     sourceSets {
@@ -34,7 +31,7 @@ kotlin {
             dependencies {
                 // put your multiplatform dependencies here
                 implementation(project(":muscat-core"))
-                implementation(libs.compose.runtime)
+                implementation(libs.logger.kermit)
             }
         }
         val commonTest by getting {
@@ -46,7 +43,7 @@ kotlin {
 }
 
 android {
-    namespace = "io.github.hkusu.muscat.compose"
+    namespace = "io.github.hkusu.muscat.logging"
     compileSdk = libs.versions.android.compileSdk.get().toInt()
     defaultConfig {
         minSdk = libs.versions.android.minSdk.get().toInt()

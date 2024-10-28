@@ -1,8 +1,8 @@
+import com.vanniktech.maven.publish.JavadocJar
+import com.vanniktech.maven.publish.KotlinMultiplatform
 import com.vanniktech.maven.publish.SonatypeHost
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-import com.vanniktech.maven.publish.KotlinMultiplatform
-import com.vanniktech.maven.publish.JavadocJar
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
@@ -16,14 +16,9 @@ kotlin {
     // jvm()
     androidTarget {
         publishLibraryVariants("release")
-        // @OptIn(ExperimentalKotlinGradlePluginApi::class)
-        // compilerOptions {
-        //     jvmTarget.set(JvmTarget.JVM_1_8)
-        // }
-        compilations.all {
-            kotlinOptions {
-                jvmTarget = "1.8"
-            }
+        @OptIn(ExperimentalKotlinGradlePluginApi::class)
+        compilerOptions {
+            jvmTarget.set(JvmTarget.JVM_1_8)
         }
     }
     iosX64()
@@ -34,7 +29,7 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
-                //put your multiplatform dependencies here
+                // put your multiplatform dependencies here
                 implementation(libs.coroutines.core)
             }
         }
@@ -58,6 +53,7 @@ mavenPublishing {
     configure(KotlinMultiplatform(javadocJar = JavadocJar.Dokka("dokkaHtml")))
     publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL)
     if (project.hasProperty("mavenCentralUsername") ||
-        System.getenv("ORG_GRADLE_PROJECT_mavenCentralUsername") != null)
+        System.getenv("ORG_GRADLE_PROJECT_mavenCentralUsername") != null
+    )
         signAllPublications()
 }

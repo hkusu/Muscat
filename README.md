@@ -61,7 +61,7 @@ class YourActivity : ComponentActivity() {
 #### Rendering according to State
 
 Use `ComposeStore.render()` method.
-Specify the target state using generics.
+Specify the target State using generics.
 
 ```
 store.render<YourState.Stable> {
@@ -104,7 +104,7 @@ Button(
 #### Event handling
 
 Use `ComposeStore.handle()` method.
-Specify the target state using generics.
+Specify the target State using generics.
 
 ```
 store.handle<YourEvent.ShowToast> {
@@ -133,7 +133,7 @@ store.handle<YourEvent> {
 #### Preview on IDE
 
 Use `previewComposeStore()` function.
-Specify the target state using the method argument.
+Specify the target State using the method argument.
 
 ```
 @Preview
@@ -150,5 +150,20 @@ fun SomePreview() {
 ```
 
 ## Middleware
+
+You can create functions linked to State etc. on the Store.
+To do this, create a class with the `Middleware` interface and override the necessary methods.
+
+```
+class YourMiddleware<S : State, A : Action, E : Event> : Middleware<S, A, E> {
+    override suspend fun runAfterStateChange(state: S, prevState: S) {
+        // do something..
+    }
+}
+```
+
+The `:tart-logging` module in this repository is an example of Middleware that does simple logging.
+
+### Apply Middleware
 
 TODO

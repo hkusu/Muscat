@@ -3,6 +3,7 @@ agp = "8.6.1"
 kotlin = "2.0.20"
 coroutines = "1.9.0"
 compose = "1.7.4"
+kermit = "1.2.2"
 nexus-publish = "2.0.0"
 android-minSdk = "21"
 android-compileSdk = "34"
@@ -12,6 +13,7 @@ vanniktech-maven-publish = "0.29.0"
 [libraries]
 coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "coroutines" }
 compose-runtime = { group = "androidx.compose.runtime", name = "runtime", version.ref = "compose" }
+logger-kermit = { group = "co.touchlab", name = "kermit", version.ref = "kermit" }
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
 nexus-publish = { module = "io.github.gradle-nexus.publish-plugin:io.github.gradle-nexus.publish-plugin.gradle.plugin", version.ref = "nexus-publish" }
 

@@ -17,3 +17,4 @@ dependencyResolutionManagement {
 rootProject.name = "Muscat"
 include(":muscat-core")
 include(":muscat-compose")
+include(":muscat-logging")
