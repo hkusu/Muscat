@@ -9,21 +9,13 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-
-@Suppress("unused")
-fun <S : State, A : Action, E : Event> Store.Companion.create(
-    initialState: S,
-    coroutineScope: CoroutineScope = CoroutineScope(Dispatchers.Default + SupervisorJob()),
-): Store<S, A, E> {
-    return DefaultStore(
-        initialState = initialState,
-        coroutineScope = coroutineScope,
-    )
-}
+import kotlin.coroutines.EmptyCoroutineContext
 
 internal class DefaultStore<S : State, A : Action, E : Event>(
     private val initialState: S,
@@ -205,5 +197,35 @@ internal class DefaultStore<S : State, A : Action, E : Event>(
 
     private fun printNote(throwable: Throwable) {
         println("[Chestnut] An error occurred during error handling. $throwable")
+    }
+}
+
+@Suppress("unused")
+fun <S : State, A : Action, E : Event> Store.Companion.create(
+    initialState: S,
+    coroutineScope: CoroutineScope = CoroutineScope(Dispatchers.Default + SupervisorJob()),
+): Store<S, A, E> {
+    return DefaultStore(
+        initialState = initialState,
+        coroutineScope = coroutineScope,
+    )
+}
+
+@Suppress("unused")
+fun <S : State, A : Action, E : Event> Store.Companion.createMock(
+    initialState: S,
+): Store<S, A, E> {
+    return object : Store<S, A, E> {
+        override val state: StateFlow<S> = MutableStateFlow(initialState)
+        override val event: Flow<E> = emptyFlow()
+        override val currentState: S = initialState
+        override val middlewares: List<Middleware<S, A, E>> = listOf()
+        override fun dispatch(action: A) {}
+        override fun collect(onState: Store.OnState<S>, onEvent: Store.OnEvent<E>): Job = EmptyCoroutineContext.job
+        override suspend fun onEnter(state: S, emit: EventEmit<E>): S = state
+        override suspend fun onExit(state: S, emit: EventEmit<E>) {}
+        override suspend fun onDispatch(state: S, action: A, emit: EventEmit<E>): S = state
+        override suspend fun onError(state: S, error: Throwable, emit: EventEmit<E>): S = state
+        override fun dispose() {}
     }
 }

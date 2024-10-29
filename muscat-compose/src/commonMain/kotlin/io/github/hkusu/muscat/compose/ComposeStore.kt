@@ -9,8 +9,8 @@ import io.github.hkusu.muscat.core.Event
 import io.github.hkusu.muscat.core.State
 import io.github.hkusu.muscat.core.Store
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.flowOf
 
 interface ComposeStore<S : State, A : Action, E : Event> {
     val state: S
@@ -49,12 +49,13 @@ fun <S : State, A : Action, E : Event> ComposeStore.Companion.create(store: Stor
     }
 }
 
+// or, ComposeStore.create(Store.createMock(<initial State>))
 @Suppress("unused")
 @Composable
-fun <S : State, A : Action, E : Event> ComposeStore.Companion.previewCreate(state: S): ComposeStore<S, A, E> {
+fun <S : State, A : Action, E : Event> ComposeStore.Companion.createMock(state: S): ComposeStore<S, A, E> {
     return object : ComposeStore<S, A, E> {
         override val state: S = state
         override val dispatch: (A) -> Unit = {}
-        override val event: Flow<E> = flowOf()
+        override val event: Flow<E> = emptyFlow()
     }
 }
