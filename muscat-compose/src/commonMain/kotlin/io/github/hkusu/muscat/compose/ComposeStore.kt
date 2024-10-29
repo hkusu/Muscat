@@ -12,50 +12,46 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.filter
 
-interface ComposeStore<S : State, A : Action, E : Event> {
-    val state: S
-    val dispatch: (A) -> Unit
-    val event: Flow<E>
-
-    companion object
-}
-
 @Suppress("unused")
-@Composable
-inline fun <S : State, A : Action, E : Event, reified S2 : S> ComposeStore<S, A, E>.render(block: S2.() -> Unit) {
-    if (state is S2) {
-        block(state as S2)
-    }
-}
-
-@Suppress("unused")
-@Composable
-inline fun <S : State, A : Action, E : Event, reified E2 : E> ComposeStore<S, A, E>.handle(crossinline block: E2.() -> Unit) {
-    LaunchedEffect(Unit) {
-        event.filter { it is E2 }.collect {
-            block(it as E2)
+data class ComposeStore<S : State, A : Action, E : Event>(
+    val state: S,
+    val dispatch: (A) -> Unit,
+    val event: Flow<E>,
+) {
+    @Composable
+    inline fun <reified S2 : S> ComposeStore<S, A, E>.render(block: S2.() -> Unit) {
+        if (state is S2) {
+            block(state)
         }
     }
-}
 
-@Suppress("unused")
-@Composable
-fun <S : State, A : Action, E : Event> ComposeStore.Companion.create(store: Store<S, A, E>): ComposeStore<S, A, E> {
-    val state by store.state.collectAsState()
-    return object : ComposeStore<S, A, E> {
-        override val state: S = state
-        override val dispatch: (A) -> Unit = store::dispatch
-        override val event: Flow<E> = store.event
+    @Composable
+    inline fun <reified E2 : E> ComposeStore<S, A, E>.handle(crossinline block: E2.() -> Unit) {
+        LaunchedEffect(Unit) {
+            event.filter { it is E2 }.collect {
+                block(it as E2)
+            }
+        }
     }
-}
 
-// or, ComposeStore.create(Store.createMock(<initial State>))
-@Suppress("unused")
-@Composable
-fun <S : State, A : Action, E : Event> ComposeStore.Companion.createMock(state: S): ComposeStore<S, A, E> {
-    return object : ComposeStore<S, A, E> {
-        override val state: S = state
-        override val dispatch: (A) -> Unit = {}
-        override val event: Flow<E> = emptyFlow()
+    companion object {
+        @Composable
+        fun <S : State, A : Action, E : Event> create(store: Store<S, A, E>): ComposeStore<S, A, E> {
+            val state by store.state.collectAsState()
+            return ComposeStore(
+                state = state,
+                dispatch = store::dispatch,
+                event = store.event,
+            )
+        }
+
+        @Composable
+        fun <S : State, A : Action, E : Event> createMock(state: S): ComposeStore<S, A, E> {
+            return ComposeStore(
+                state = state,
+                dispatch = {},
+                event = emptyFlow(),
+            )
+        }
     }
 }

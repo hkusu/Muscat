@@ -5,6 +5,7 @@ import io.github.hkusu.muscat.core.Event
 import io.github.hkusu.muscat.core.Middleware
 import io.github.hkusu.muscat.core.State
 
+@Suppress("unused")
 open class SimpleLoggingMiddleware<S : State, A : Action, E : Event>(
     protected open val logger: Logger = DefaultLogger(),
     protected open val tag: String = "Tart",
