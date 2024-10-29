@@ -19,14 +19,14 @@ data class ComposeStore<S : State, A : Action, E : Event>(
     val event: Flow<E>,
 ) {
     @Composable
-    inline fun <reified S2 : S> ComposeStore<S, A, E>.render(block: S2.() -> Unit) {
+    inline fun <reified S2 : S> render(block: S2.() -> Unit) {
         if (state is S2) {
             block(state)
         }
     }
 
     @Composable
-    inline fun <reified E2 : E> ComposeStore<S, A, E>.handle(crossinline block: E2.() -> Unit) {
+    inline fun <reified E2 : E> handle(crossinline block: E2.() -> Unit) {
         LaunchedEffect(Unit) {
             event.filter { it is E2 }.collect {
                 block(it as E2)
