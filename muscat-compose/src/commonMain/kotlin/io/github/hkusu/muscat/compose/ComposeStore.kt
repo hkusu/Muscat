@@ -12,50 +12,49 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.flowOf
 
+interface ComposeStore<S : State, A : Action, E : Event> {
+    val state: S
+    val dispatch: (A) -> Unit
+    val event: Flow<E>
+
+    companion object
+}
+
 @Suppress("unused")
-class ComposeStore<S : State, A : Action, E : Event> private constructor(
-    val state: S,
-    val dispatch: (A) -> Unit,
-    val event: Flow<E>,
-) {
-    @Composable
-    inline fun <reified S2 : S> render(block: S2.() -> Unit) {
-        if (state is S2) {
-            block(state)
-        }
+@Composable
+inline fun <S : State, A : Action, E : Event, reified S2 : S> ComposeStore<S, A, E>.render(block: S2.() -> Unit) {
+    if (state is S2) {
+        block(state as S2)
     }
+}
 
-    @Composable
-    inline fun <reified E2 : E> handle(crossinline block: E2.() -> Unit) {
-        LaunchedEffect(Unit) {
-            event.filter { it is E2 }.collect {
-                block(it as E2)
-            }
-        }
-    }
-
-    companion object {
-        @Composable
-        internal fun <S : State, A : Action, E : Event> create(store: Store<S, A, E>): ComposeStore<S, A, E> {
-            val state by store.state.collectAsState()
-            return ComposeStore(state = state, dispatch = store::dispatch, event = store.event)
-        }
-
-        @Composable
-        internal fun <S : State, A : Action, E : Event> create(state: S): ComposeStore<S, A, E> {
-            return ComposeStore(state = state, dispatch = {}, event = flowOf())
+@Suppress("unused")
+@Composable
+inline fun <S : State, A : Action, E : Event, reified E2 : E> ComposeStore<S, A, E>.handle(crossinline block: E2.() -> Unit) {
+    LaunchedEffect(Unit) {
+        event.filter { it is E2 }.collect {
+            block(it as E2)
         }
     }
 }
 
 @Suppress("unused")
 @Composable
-fun <S : State, A : Action, E : Event> composeStore(store: Store<S, A, E>): ComposeStore<S, A, E> {
-    return ComposeStore.create(store = store)
+fun <S : State, A : Action, E : Event> ComposeStore.Companion.create(store: Store<S, A, E>): ComposeStore<S, A, E> {
+    val state by store.state.collectAsState()
+    return object : ComposeStore<S, A, E> {
+        override val state: S = state
+        override val dispatch: (A) -> Unit = store::dispatch
+        override val event: Flow<E> = store.event
+    }
 }
 
 @Suppress("unused")
 @Composable
-fun <S : State, A : Action, E : Event> previewComposeStore(state: S): ComposeStore<S, A, E> {
-    return ComposeStore.create(state = state)
+fun <S : State, A : Action, E : Event> ComposeStore.Companion.previewCreate(state: S): ComposeStore<S, A, E> {
+    return object : ComposeStore<S, A, E> {
+        override val state: S = state
+        override val dispatch: (A) -> Unit = {}
+        override val event: Flow<E> = flowOf()
+    }
 }

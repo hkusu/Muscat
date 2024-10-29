@@ -3,7 +3,7 @@ package io.github.hkusu.muscat.logging
 import co.touchlab.kermit.Severity
 import co.touchlab.kermit.Logger.Companion as Kermit
 
-class DefaultLogger : Logger {
+internal class DefaultLogger : Logger {
     override fun log(level: Logger.Level, tag: String, message: () -> String) {
         Kermit.log(
             severity = level.severity(),

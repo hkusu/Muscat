@@ -32,7 +32,7 @@ tart-compose = { module = "io.github.hkusu.muscat:muscat-compose", version = "<l
 
 #### Create ComposeStore instance
 
-Create an instance of the `ComposeStore` from a regular Store instance using the `composeStore()` function.
+Create an instance of the `ComposeStore` from a regular Store instance using the `ComposeStore#create()` function.
 For example, if you have a Store in your ViewModel, it would look like this:
 
 ```
@@ -45,7 +45,7 @@ class YourActivity : ComponentActivity() {
 
         setContent {
             // create ComposeStore instance
-            val store = composeStore(YourViewModel.store)
+            val store = ComposeStore.create(YourViewModel.store)
         
             MyApplicationTheme {
                 Surface(
@@ -132,7 +132,7 @@ store.handle<YourEvent> {
 
 #### Preview on IDE
 
-Use `previewComposeStore()` function.
+Use `ComposeStore#previewCreate()` function.
 Specify the target State using the method argument.
 
 ```
@@ -141,7 +141,7 @@ Specify the target State using the method argument.
 fun SomePreview() {
     MyApplicationTheme {
         YourChildComposableComponent(
-            store = previewComposeStore(
+            store = ComposeStore.previewCreate(
                 state = YourState.Stable,
             ),
         )
