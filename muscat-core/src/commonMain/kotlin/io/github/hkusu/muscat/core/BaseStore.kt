@@ -1,7 +1,9 @@
 package io.github.hkusu.muscat.core
 
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -12,9 +14,10 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
-internal class DefaultStore<S : State, A : Action, E : Event>(
+@Suppress("unused")
+abstract class BaseStore<S : State, A : Action, E : Event>(
     private val initialState: S,
-    private val coroutineScope: CoroutineScope,
+    private val coroutineScope: CoroutineScope = CoroutineScope(Dispatchers.Default + SupervisorJob()),
 ) : Store<S, A, E> {
     private val _state: MutableStateFlow<S> = MutableStateFlow(initialState)
     override val state: StateFlow<S> by lazy {
@@ -31,7 +34,7 @@ internal class DefaultStore<S : State, A : Action, E : Event>(
 
     override val currentState: S get() = _state.value
 
-    override val middlewares: List<Middleware<S, A, E>> = emptyList()
+    protected open val middlewares: List<Middleware<S, A, E>> = emptyList()
 
     private val mutex = Mutex()
 
@@ -51,15 +54,15 @@ internal class DefaultStore<S : State, A : Action, E : Event>(
         }
     }
 
-    override suspend fun onEnter(state: S, emit: EventEmit<E>): S = state
+    protected open suspend fun onEnter(state: S, emit: EventEmit<E>): S = state
 
-    override suspend fun onExit(state: S, emit: EventEmit<E>) {}
+    protected open suspend fun onExit(state: S, emit: EventEmit<E>) {}
 
-    override suspend fun onDispatch(state: S, action: A, emit: EventEmit<E>): S = state
+    protected open suspend fun onDispatch(state: S, action: A, emit: EventEmit<E>): S = state
 
-    override suspend fun onError(state: S, error: Throwable, emit: EventEmit<E>): S = state
+    protected open suspend fun onError(state: S, error: Throwable, emit: EventEmit<E>): S = state
 
-    override fun dispose() {
+    protected open fun dispose() {
         coroutineScope.cancel()
     }
 
@@ -192,5 +195,9 @@ internal class DefaultStore<S : State, A : Action, E : Event>(
 
     private fun printNote(throwable: Throwable) {
         println("[Chestnut] An error occurred during error handling. $throwable")
+    }
+
+    fun interface EventEmit<E> {
+        suspend operator fun invoke(event: E)
     }
 }

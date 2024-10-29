@@ -4,7 +4,7 @@ plugins {
 
 allprojects {
     group = "io.github.hkusu.muscat"
-    version = "0.10.1"
+    version = "0.11.0"
 }
 
 nexusPublishing {
