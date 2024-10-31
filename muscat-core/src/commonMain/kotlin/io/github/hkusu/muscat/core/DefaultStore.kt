@@ -11,7 +11,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
-@Suppress("unused")
 open class DefaultStore<S : State, A : Action, E : Event> internal constructor(
     private val initialState: S,
     private val processInitialStateEnter: Boolean,
