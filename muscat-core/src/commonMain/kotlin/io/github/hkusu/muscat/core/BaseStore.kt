@@ -2,7 +2,6 @@ package io.github.hkusu.muscat.core
 
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.Flow
@@ -17,13 +16,17 @@ import kotlinx.coroutines.sync.withLock
 @Suppress("unused")
 abstract class BaseStore<S : State, A : Action, E : Event>(
     private val initialState: S,
+    private val processInitialStateEnter: Boolean = true,
+    private val latestState: suspend (S) -> Unit = {},
     private val coroutineScope: CoroutineScope = CoroutineScope(Dispatchers.Default + SupervisorJob()),
 ) : Store<S, A, E> {
     private val _state: MutableStateFlow<S> = MutableStateFlow(initialState)
     override val state: StateFlow<S> by lazy {
-        coroutineScope.launch {
-            mutex.withLock {
-                onStateEntered(initialState)
+        if (processInitialStateEnter) {
+            coroutineScope.launch {
+                mutex.withLock {
+                    onStateEntered(initialState)
+                }
             }
         }
         _state
@@ -47,10 +50,16 @@ abstract class BaseStore<S : State, A : Action, E : Event>(
         }
     }
 
-    override fun collect(onState: Store.OnState<S>, onEvent: Store.OnEvent<E>): Job {
-        return coroutineScope.launch {
-            launch { state.collect { onState(it) } }
-            launch { event.collect { onEvent(it) } }
+    override fun collectState(state: (S) -> Unit) {
+        coroutineScope.launch {
+            // use _state to avoid state initialization
+            this@BaseStore._state.collect { state(it) }
+        }
+    }
+
+    override fun collectEvent(event: (E) -> Unit) {
+        coroutineScope.launch {
+            this@BaseStore.event.collect { event(it) }
         }
     }
 
@@ -177,6 +186,7 @@ abstract class BaseStore<S : State, A : Action, E : Event>(
             it.runBeforeStateChange(state, nextState)
         }
         _state.update { nextState }
+        latestState(nextState)
         middlewares.forEach {
             it.runAfterStateChange(nextState, state)
         }
