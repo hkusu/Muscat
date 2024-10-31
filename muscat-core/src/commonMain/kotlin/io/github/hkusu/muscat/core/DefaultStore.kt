@@ -1,8 +1,6 @@
 package io.github.hkusu.muscat.core
 
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -14,11 +12,11 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
 @Suppress("unused")
-abstract class BaseStore<S : State, A : Action, E : Event>(
+open class DefaultStore<S : State, A : Action, E : Event> internal constructor(
     private val initialState: S,
-    private val processInitialStateEnter: Boolean = true,
-    private val latestState: suspend (S) -> Unit = {},
-    private val coroutineScope: CoroutineScope = CoroutineScope(Dispatchers.Default + SupervisorJob()),
+    private val processInitialStateEnter: Boolean,
+    private val latestState: suspend (S) -> Unit,
+    private val coroutineScope: CoroutineScope,
 ) : Store<S, A, E> {
     private val _state: MutableStateFlow<S> = MutableStateFlow(initialState)
     override val state: StateFlow<S> by lazy {
@@ -53,13 +51,13 @@ abstract class BaseStore<S : State, A : Action, E : Event>(
     override fun collectState(state: (S) -> Unit) {
         coroutineScope.launch {
             // use _state to avoid state initialization
-            this@BaseStore._state.collect { state(it) }
+            this@DefaultStore._state.collect { state(it) }
         }
     }
 
     override fun collectEvent(event: (E) -> Unit) {
         coroutineScope.launch {
-            this@BaseStore.event.collect { event(it) }
+            this@DefaultStore.event.collect { event(it) }
         }
     }
 

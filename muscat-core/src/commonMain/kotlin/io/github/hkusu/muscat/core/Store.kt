@@ -1,10 +1,14 @@
 package io.github.hkusu.muscat.core
 
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.emptyFlow
 
+@Suppress("unused")
 interface Store<S : State, A : Action, E : Event> {
     val state: StateFlow<S>
 
@@ -18,7 +22,18 @@ interface Store<S : State, A : Action, E : Event> {
 
     fun collectEvent(event: (E) -> Unit)
 
-    @Suppress("unused")
+    abstract class Base<S : State, A : Action, E : Event>(
+        initialState: S,
+        processInitialStateEnter: Boolean = true,
+        latestState: suspend (S) -> Unit = {},
+        coroutineScope: CoroutineScope = CoroutineScope(Dispatchers.Default + SupervisorJob()),
+    ) : DefaultStore<S, A, E>(
+        initialState = initialState,
+        processInitialStateEnter = processInitialStateEnter,
+        latestState = latestState,
+        coroutineScope = coroutineScope,
+    )
+
     companion object {
         fun <S : State, A : Action, E : Event> createMock(
             initialState: S,
