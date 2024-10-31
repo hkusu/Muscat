@@ -13,7 +13,7 @@ import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.filter
 
 @Suppress("unused")
-class ComposeStore<S : State, A : Action, E : Event>(
+class ComposeStore<S : State, A : Action, E : Event> private constructor(
     val state: S,
     val dispatch: (A) -> Unit,
     val event: Flow<E>,

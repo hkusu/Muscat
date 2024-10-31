@@ -204,7 +204,7 @@ abstract class BaseStore<S : State, A : Action, E : Event>(
     }
 
     private fun printNote(throwable: Throwable) {
-        println("[Chestnut] An error occurred during error handling. $throwable")
+        println("[Tart] An error occurred during error handling. $throwable")
     }
 
     fun interface EventEmit<E> {
