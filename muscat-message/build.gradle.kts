@@ -31,6 +31,7 @@ kotlin {
             dependencies {
                 // put your multiplatform dependencies here
                 implementation(project(":muscat-core"))
+                implementation(libs.coroutines.core)
             }
         }
         val commonTest by getting {
