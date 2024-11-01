@@ -19,9 +19,12 @@ open class DefaultStore<S : State, A : Action, E : Event> internal constructor(
 ) : Store<S, A, E> {
     private val _state: MutableStateFlow<S> = MutableStateFlow(initialState)
     override val state: StateFlow<S> by lazy {
-        if (processInitialStateEnter) {
-            coroutineScope.launch {
-                mutex.withLock {
+        coroutineScope.launch {
+            mutex.withLock {
+                middlewares.forEach {
+                    it.initialize(this@DefaultStore, coroutineScope)
+                }
+                if (processInitialStateEnter) {
                     onStateEntered(initialState)
                 }
             }

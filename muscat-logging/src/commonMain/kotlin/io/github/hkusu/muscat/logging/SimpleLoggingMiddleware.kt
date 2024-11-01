@@ -10,7 +10,7 @@ open class SimpleLoggingMiddleware<S : State, A : Action, E : Event>(
     protected open val logger: Logger = DefaultLogger(),
     protected open val tag: String = "Tart",
     protected open val level: Logger.Level = Logger.Level.Debug,
-) : Middleware<S, A, E> {
+) : Middleware<S, A, E>() {
     override suspend fun runAfterActionDispatch(state: S, action: A, nextState: S) {
         logger.log(level = level, tag = tag) { "Action: $action" }
     }
