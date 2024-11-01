@@ -4,7 +4,6 @@ import io.github.hkusu.muscat.core.Action
 import io.github.hkusu.muscat.core.Event
 import io.github.hkusu.muscat.core.Middleware
 import io.github.hkusu.muscat.core.State
-import io.github.hkusu.muscat.core.Store
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
@@ -22,23 +21,27 @@ internal object MessageHub {
 
 @Suppress("unused")
 class MessageSendMiddleware<S : State, A : Action, E : Event>(
-    private val send: suspend Store<S, A, E>.(E) -> Message,
+    private val send: suspend S.(event: E, send: suspend (Message) -> Unit) -> Unit,
 ) : Middleware<S, A, E>() {
     override suspend fun runAfterEventEmit(state: S, event: E) {
-        coroutineScope.launch {
-            MessageHub.send(send(store, event))
+        scope.launch {
+            send(currentState, event, this@MessageSendMiddleware::send)
         }
+    }
+
+    private suspend fun send(message: Message) {
+        MessageHub.send(message)
     }
 }
 
 @Suppress("unused")
 class MessageReceiveMiddleware<S : State, A : Action, E : Event>(
-    private val receive: suspend Store<S, A, E>.(Message) -> Unit,
+    private val receive: suspend S.(message: Message, dispatch: (A) -> Unit) -> Unit,
 ) : Middleware<S, A, E>() {
     override suspend fun onInit() {
-        coroutineScope.launch {
+        scope.launch {
             MessageHub.messages.collect {
-                receive(store, it)
+                receive(currentState, it, dispatch)
             }
         }
     }

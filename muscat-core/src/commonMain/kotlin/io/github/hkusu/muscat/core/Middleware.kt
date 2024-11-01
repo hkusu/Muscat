@@ -3,12 +3,15 @@ package io.github.hkusu.muscat.core
 import kotlinx.coroutines.CoroutineScope
 
 abstract class Middleware<S : State, A : Action, E : Event> {
-    protected lateinit var store: Store<S, A, E>
-    protected lateinit var coroutineScope: CoroutineScope
+    private lateinit var store: Store<S, A, E>
+    protected lateinit var scope: CoroutineScope
+    protected lateinit var dispatch: (A) -> Unit
+    protected val currentState get() = store.currentState
 
     suspend fun initialize(store: Store<S, A, E>, coroutineScope: CoroutineScope) {
         this.store = store
-        this.coroutineScope = coroutineScope
+        this.scope = coroutineScope
+        this.dispatch = store::dispatch
         onInit()
     }
 
