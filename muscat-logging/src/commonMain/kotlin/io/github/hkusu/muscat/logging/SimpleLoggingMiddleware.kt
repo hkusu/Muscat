@@ -11,19 +11,19 @@ open class SimpleLoggingMiddleware<S : State, A : Action, E : Event>(
     protected open val tag: String = "Tart",
     protected open val level: Logger.Level = Logger.Level.Debug,
 ) : Middleware<S, A, E>() {
-    override suspend fun runAfterActionDispatch(state: S, action: A, nextState: S) {
+    override suspend fun afterActionDispatch(state: S, action: A, nextState: S) {
         logger.log(level = level, tag = tag) { "Action: $action" }
     }
 
-    override suspend fun runAfterEventEmit(state: S, event: E) {
+    override suspend fun afterEventEmit(state: S, event: E) {
         logger.log(level = level, tag = tag) { "Event: $event" }
     }
 
-    override suspend fun runAfterStateChange(state: S, prevState: S) {
+    override suspend fun afterStateChange(state: S, prevState: S) {
         logger.log(level = level, tag = tag) { "State: $prevState -> $state" }
     }
 
-    override suspend fun runAfterError(state: S, nextState: S, error: Throwable) {
+    override suspend fun afterError(state: S, nextState: S, error: Throwable) {
         logger.log(level = level, tag = tag) { "Error: $error" }
     }
 }

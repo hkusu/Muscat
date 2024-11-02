@@ -26,16 +26,7 @@ abstract class Store<S : State, A : Action, E : Event>(
 ) {
     private val _state: MutableStateFlow<S> = MutableStateFlow(initialState)
     val state: StateFlow<S> by lazy {
-        coroutineScope.launch {
-            mutex.withLock {
-                middlewares.forEach {
-                    it.initialize(this@Store, coroutineScope)
-                }
-                if (processInitialStateEnter) {
-                    onStateEntered(initialState)
-                }
-            }
-        }
+        init()
         _state
     }
 
@@ -79,6 +70,19 @@ abstract class Store<S : State, A : Action, E : Event>(
 
     protected fun dispose() {
         coroutineScope.cancel()
+    }
+
+    private fun init() {
+        coroutineScope.launch {
+            mutex.withLock {
+                middlewares.forEach {
+                    it.init(this@Store, coroutineScope)
+                }
+                if (processInitialStateEnter) {
+                    onStateEntered(initialState)
+                }
+            }
+        }
     }
 
     private suspend fun onActionDispatched(state: S, action: A) {
@@ -147,64 +151,64 @@ abstract class Store<S : State, A : Action, E : Event>(
 
     private suspend fun processActonDispatch(state: S, action: A): S {
         middlewares.forEach {
-            it.runBeforeActionDispatch(state, action)
+            it.beforeActionDispatch(state, action)
         }
         val nextState = onDispatch(state, action) { processEventEmit(state, it) }
         middlewares.forEach {
-            it.runAfterActionDispatch(state, action, nextState)
+            it.afterActionDispatch(state, action, nextState)
         }
         return nextState
     }
 
     private suspend fun processEventEmit(state: S, event: E) {
         middlewares.forEach {
-            it.runBeforeEventEmit(state, event)
+            it.beforeEventEmit(state, event)
         }
         _event.emit(event)
         middlewares.forEach {
-            it.runAfterEventEmit(state, event)
+            it.afterEventEmit(state, event)
         }
     }
 
     private suspend fun processStateEnter(state: S): S {
         middlewares.forEach {
-            it.runBeforeStateEnter(state)
+            it.beforeStateEnter(state)
         }
         val nextState = onEnter(state) { processEventEmit(state, it) }
         middlewares.forEach {
-            it.runAfterStateEnter(state, nextState)
+            it.afterStateEnter(state, nextState)
         }
         return nextState
     }
 
     private suspend fun processStateExit(state: S) {
         middlewares.forEach {
-            it.runBeforeStateExit(state)
+            it.beforeStateExit(state)
         }
         onExit(state) { processEventEmit(state, it) }
         middlewares.forEach {
-            it.runAfterStateExit(state)
+            it.afterStateExit(state)
         }
     }
 
     private suspend fun processStateChange(state: S, nextState: S) {
         middlewares.forEach {
-            it.runBeforeStateChange(state, nextState)
+            it.beforeStateChange(state, nextState)
         }
         _state.update { nextState }
         latestState(nextState)
         middlewares.forEach {
-            it.runAfterStateChange(nextState, state)
+            it.afterStateChange(nextState, state)
         }
     }
 
     private suspend fun processError(state: S, throwable: Throwable): S {
         middlewares.forEach {
-            it.runBeforeError(state, throwable)
+            it.beforeError(state, throwable)
         }
         val nextState = onError(state, throwable) { processEventEmit(state, it) }
         middlewares.forEach {
-            it.runAfterError(state, nextState, throwable)
+            it.afterError(state, nextState, throwable)
         }
         return nextState
     }

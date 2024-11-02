@@ -23,9 +23,9 @@ internal object MessageHub {
 class MessageSendMiddleware<S : State, A : Action, E : Event>(
     private val send: suspend S.(event: E, send: suspend (Message) -> Unit) -> Unit,
 ) : Middleware<S, A, E>() {
-    override suspend fun runAfterEventEmit(state: S, event: E) {
-        scope.launch {
-            send(currentState, event, this@MessageSendMiddleware::send)
+    override suspend fun afterEventEmit(state: S, event: E) {
+        coroutineScope.launch {
+            send(store.currentState, event, this@MessageSendMiddleware::send)
         }
     }
 
@@ -39,9 +39,9 @@ class MessageReceiveMiddleware<S : State, A : Action, E : Event>(
     private val receive: suspend S.(message: Message, dispatch: (A) -> Unit) -> Unit,
 ) : Middleware<S, A, E>() {
     override suspend fun onInit() {
-        scope.launch {
+        coroutineScope.launch {
             MessageHub.messages.collect {
-                receive(currentState, it, dispatch)
+                receive(store.currentState, it, store::dispatch)
             }
         }
     }
