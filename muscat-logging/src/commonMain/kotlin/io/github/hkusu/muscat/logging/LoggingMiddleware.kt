@@ -6,10 +6,10 @@ import io.github.hkusu.muscat.core.Middleware
 import io.github.hkusu.muscat.core.State
 
 @Suppress("unused")
-open class SimpleLoggingMiddleware<S : State, A : Action, E : Event>(
-    protected open val logger: Logger = DefaultLogger(),
-    protected open val tag: String = "Tart",
-    protected open val level: Logger.Level = Logger.Level.Debug,
+open class LoggingMiddleware<S : State, A : Action, E : Event>(
+    protected val logger: Logger = DefaultLogger(),
+    protected val tag: String = "Tart",
+    protected val level: Logger.Level = Logger.Level.Debug,
 ) : Middleware<S, A, E>() {
     override suspend fun afterActionDispatch(state: S, action: A, nextState: S) {
         logger.log(level = level, tag = tag) { "Action: $action" }
