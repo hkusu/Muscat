@@ -4,6 +4,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -43,7 +44,7 @@ abstract class Store<S : State, A : Action, E : Event>(
         state // initialize if need
         coroutineScope.launch {
             mutex.withLock {
-                onActionDispatched(_state.value, action)
+                onActionDispatched(currentState, action)
             }
         }
     }
@@ -75,8 +76,10 @@ abstract class Store<S : State, A : Action, E : Event>(
     private fun init() {
         coroutineScope.launch {
             mutex.withLock {
-                middlewares.forEach {
-                    it.onInit(this@Store, coroutineScope)
+                coroutineScope {
+                    middlewares.map {
+                        launch { it.onInit(this@Store, this@Store.coroutineScope) }
+                    }
                 }
                 if (processInitialStateEnter) {
                     onStateEntered(initialState)
@@ -150,66 +153,89 @@ abstract class Store<S : State, A : Action, E : Event>(
     }
 
     private suspend fun processActonDispatch(state: S, action: A): S {
-        middlewares.forEach {
-            it.beforeActionDispatch(state, action)
+        coroutineScope {
+            middlewares.map {
+                launch { it.beforeActionDispatch(state, action) }
+            }
         }
         val nextState = onDispatch(state, action, ::emit)
-
-        middlewares.forEach {
-            it.afterActionDispatch(state, action, nextState)
+        coroutineScope {
+            middlewares.map {
+                launch { it.afterActionDispatch(state, action, nextState) }
+            }
         }
         return nextState
     }
 
     private suspend fun processEventEmit(state: S, event: E) {
-        middlewares.forEach {
-            it.beforeEventEmit(state, event)
+        coroutineScope {
+            middlewares.map {
+                launch { it.beforeEventEmit(state, event) }
+            }
         }
         _event.emit(event)
-        middlewares.forEach {
-            it.afterEventEmit(state, event)
+        coroutineScope {
+            middlewares.map {
+                launch { it.afterEventEmit(state, event) }
+            }
         }
     }
 
     private suspend fun processStateEnter(state: S): S {
-        middlewares.forEach {
-            it.beforeStateEnter(state)
+        coroutineScope {
+            middlewares.map {
+                launch { it.beforeStateEnter(state) }
+            }
         }
         val nextState = onEnter(state, ::emit)
-        middlewares.forEach {
-            it.afterStateEnter(state, nextState)
+        coroutineScope {
+            middlewares.map {
+                launch { it.afterStateEnter(state, nextState) }
+            }
         }
         return nextState
     }
 
     private suspend fun processStateExit(state: S) {
-        middlewares.forEach {
-            it.beforeStateExit(state)
+        coroutineScope {
+            middlewares.map {
+                launch { it.beforeStateExit(state) }
+            }
         }
         onExit(state, ::emit)
-        middlewares.forEach {
-            it.afterStateExit(state)
+        coroutineScope {
+            middlewares.map {
+                launch { it.afterStateExit(state) }
+            }
         }
     }
 
     private suspend fun processStateChange(state: S, nextState: S) {
-        middlewares.forEach {
-            it.beforeStateChange(state, nextState)
+        coroutineScope {
+            middlewares.map {
+                launch { it.beforeStateChange(state, nextState) }
+            }
         }
         _state.update { nextState }
         latestState(nextState)
-        middlewares.forEach {
-            it.afterStateChange(nextState, state)
+        coroutineScope {
+            middlewares.map {
+                launch { it.afterStateChange(nextState, state) }
+            }
         }
     }
 
     private suspend fun processError(state: S, throwable: Throwable): S {
-        middlewares.forEach {
-            it.beforeError(state, throwable)
+        coroutineScope {
+            middlewares.map {
+                launch { it.beforeError(state, throwable) }
+            }
         }
         val nextState = onError(state, throwable, ::emit)
-        middlewares.forEach {
-            it.afterError(state, nextState, throwable)
+        coroutineScope {
+            middlewares.map {
+                launch { it.afterError(state, nextState, throwable) }
+            }
         }
         return nextState
     }

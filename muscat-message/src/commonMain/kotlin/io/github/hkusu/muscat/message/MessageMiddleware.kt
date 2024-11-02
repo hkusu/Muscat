@@ -13,11 +13,11 @@ import kotlinx.coroutines.launch
 interface Message
 
 internal object MessageHub {
-    private val internalMessages = MutableSharedFlow<Message>()
-    val messages: Flow<Message> get() = internalMessages
+    private val _messages = MutableSharedFlow<Message>()
+    val messages: Flow<Message> get() = _messages
 
     suspend fun send(message: Message) {
-        internalMessages.emit(message)
+        _messages.emit(message)
     }
 }
 
