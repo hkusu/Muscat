@@ -17,7 +17,7 @@ interface State
 interface Action
 interface Event
 
-@Suppress("unused")
+@Suppress("unused", "MemberVisibilityCanBePrivate")
 abstract class Store<S : State, A : Action, E : Event>(
     private val initialState: S,
     private val processInitialStateEnter: Boolean = true,
@@ -76,7 +76,7 @@ abstract class Store<S : State, A : Action, E : Event>(
         coroutineScope.launch {
             mutex.withLock {
                 middlewares.forEach {
-                    it.init(this@Store, coroutineScope)
+                    it.onInit(this@Store, coroutineScope)
                 }
                 if (processInitialStateEnter) {
                     onStateEntered(initialState)
