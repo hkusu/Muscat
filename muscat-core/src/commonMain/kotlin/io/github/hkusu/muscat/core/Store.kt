@@ -60,13 +60,13 @@ abstract class Store<S : State, A : Action, E : Event>(
         }
     }
 
-    protected open suspend fun onEnter(state: S, emit: EventEmit<E>): S = state
+    protected open suspend fun onEnter(state: S, emit: Emit<E>): S = state
 
-    protected open suspend fun onExit(state: S, emit: EventEmit<E>) {}
+    protected open suspend fun onExit(state: S, emit: Emit<E>) {}
 
-    protected open suspend fun onDispatch(state: S, action: A, emit: EventEmit<E>): S = state
+    protected open suspend fun onDispatch(state: S, action: A, emit: Emit<E>): S = state
 
-    protected open suspend fun onError(state: S, error: Throwable, emit: EventEmit<E>): S = state
+    protected open suspend fun onError(state: S, error: Throwable, emit: Emit<E>): S = state
 
     protected fun dispose() {
         coroutineScope.cancel()
@@ -101,7 +101,7 @@ abstract class Store<S : State, A : Action, E : Event>(
                 onStateEntered(nextState)
             }
         } catch (t: Throwable) {
-            onErrorOccurred(_state.value, t)
+            onErrorOccurred(currentState, t)
         }
     }
 
@@ -122,7 +122,7 @@ abstract class Store<S : State, A : Action, E : Event>(
             }
         } catch (t: Throwable) {
             if (!inErrorHandling) {
-                onErrorOccurred(_state.value, t)
+                onErrorOccurred(currentState, t)
             } else {
                 printNote(t)
             }
@@ -153,7 +153,8 @@ abstract class Store<S : State, A : Action, E : Event>(
         middlewares.forEach {
             it.beforeActionDispatch(state, action)
         }
-        val nextState = onDispatch(state, action) { processEventEmit(state, it) }
+        val nextState = onDispatch(state, action, ::emit)
+
         middlewares.forEach {
             it.afterActionDispatch(state, action, nextState)
         }
@@ -174,7 +175,7 @@ abstract class Store<S : State, A : Action, E : Event>(
         middlewares.forEach {
             it.beforeStateEnter(state)
         }
-        val nextState = onEnter(state) { processEventEmit(state, it) }
+        val nextState = onEnter(state, ::emit)
         middlewares.forEach {
             it.afterStateEnter(state, nextState)
         }
@@ -185,7 +186,7 @@ abstract class Store<S : State, A : Action, E : Event>(
         middlewares.forEach {
             it.beforeStateExit(state)
         }
-        onExit(state) { processEventEmit(state, it) }
+        onExit(state, ::emit)
         middlewares.forEach {
             it.afterStateExit(state)
         }
@@ -206,7 +207,7 @@ abstract class Store<S : State, A : Action, E : Event>(
         middlewares.forEach {
             it.beforeError(state, throwable)
         }
-        val nextState = onError(state, throwable) { processEventEmit(state, it) }
+        val nextState = onError(state, throwable, ::emit)
         middlewares.forEach {
             it.afterError(state, nextState, throwable)
         }
@@ -217,7 +218,11 @@ abstract class Store<S : State, A : Action, E : Event>(
         println("[Tart] An error occurred during error handling. $throwable")
     }
 
-    protected fun interface EventEmit<E> {
+    private suspend fun emit(event: E) {
+        processEventEmit(currentState, event)
+    }
+
+    protected fun interface Emit<E> {
         suspend operator fun invoke(event: E)
     }
 }
