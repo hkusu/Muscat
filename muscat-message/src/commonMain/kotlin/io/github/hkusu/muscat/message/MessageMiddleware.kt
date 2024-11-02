@@ -20,29 +20,34 @@ internal object MessageHub {
 }
 
 @Suppress("unused")
-class MessageSendMiddleware<S : State, A : Action, E : Event>(
-    private val send: suspend S.(event: E, send: suspend (Message) -> Unit) -> Unit,
-) : Middleware<S, A, E>() {
+abstract class MessageSendMiddleware<S : State, A : Action, E : Event> : Middleware<S, A, E>() {
     override suspend fun afterEventEmit(state: S, event: E) {
         coroutineScope.launch {
-            send(store.currentState, event, this@MessageSendMiddleware::send)
+            onEvent(event, this@MessageSendMiddleware::send)
         }
     }
+
+    protected abstract suspend fun onEvent(event: E, send: Send)
 
     private suspend fun send(message: Message) {
         MessageHub.send(message)
     }
+
+    protected fun interface Send {
+        suspend operator fun invoke(message: Message)
+    }
 }
 
 @Suppress("unused")
-class MessageReceiveMiddleware<S : State, A : Action, E : Event>(
-    private val receive: suspend S.(message: Message, dispatch: (A) -> Unit) -> Unit,
+abstract class MessageReceiveMiddleware<S : State, A : Action, E : Event>(
 ) : Middleware<S, A, E>() {
     override suspend fun onInit() {
         coroutineScope.launch {
             MessageHub.messages.collect {
-                receive(store.currentState, it, store::dispatch)
+                receive(it)
             }
         }
     }
+
+    protected abstract suspend fun receive(message: Message)
 }
