@@ -61,13 +61,13 @@ abstract class Store<S : State, A : Action, E : Event>(
         }
     }
 
-    protected open suspend fun onEnter(state: S, emit: Emit<E>): S = state
+    protected open suspend fun onEnter(state: S, emit: EmitFun<E>): S = state
 
-    protected open suspend fun onExit(state: S, emit: Emit<E>) {}
+    protected open suspend fun onExit(state: S, emit: EmitFun<E>) {}
 
-    protected open suspend fun onDispatch(state: S, action: A, emit: Emit<E>): S = state
+    protected open suspend fun onDispatch(state: S, action: A, emit: EmitFun<E>): S = state
 
-    protected open suspend fun onError(state: S, error: Throwable, emit: Emit<E>): S = state
+    protected open suspend fun onError(state: S, error: Throwable, emit: EmitFun<E>): S = state
 
     protected fun dispose() {
         coroutineScope.cancel()
@@ -248,7 +248,7 @@ abstract class Store<S : State, A : Action, E : Event>(
         processEventEmit(currentState, event)
     }
 
-    protected fun interface Emit<E> {
+    protected fun interface EmitFun<E> {
         suspend operator fun invoke(event: E)
     }
 }

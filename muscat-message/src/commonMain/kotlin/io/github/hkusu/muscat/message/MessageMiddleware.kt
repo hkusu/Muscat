@@ -5,6 +5,7 @@ import io.github.hkusu.muscat.core.Event
 import io.github.hkusu.muscat.core.Middleware
 import io.github.hkusu.muscat.core.State
 import io.github.hkusu.muscat.core.Store
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -21,10 +22,14 @@ internal object MessageHub {
     }
 }
 
+internal val defaultExceptionHandler: CoroutineExceptionHandler = CoroutineExceptionHandler { _, _ -> }
+
 @Suppress("unused")
 abstract class MessageSendMiddleware<S : State, A : Action, E : Event> : Middleware<S, A, E> {
     private lateinit var store: Store<S, A, E>
     private lateinit var coroutineScope: CoroutineScope
+
+    private val exceptionHandler: CoroutineExceptionHandler = CoroutineExceptionHandler { _, exception -> onError(exception) }
 
     final override suspend fun onInit(store: Store<S, A, E>, coroutineScope: CoroutineScope) {
         this.store = store
@@ -32,18 +37,22 @@ abstract class MessageSendMiddleware<S : State, A : Action, E : Event> : Middlew
     }
 
     final override suspend fun afterEventEmit(state: S, event: E) {
-        coroutineScope.launch {
+        coroutineScope.launch(exceptionHandler) {
             onEvent(event, this@MessageSendMiddleware::send, store, coroutineScope)
         }
     }
 
-    protected abstract suspend fun onEvent(event: E, send: Send, store: Store<S, A, E>, coroutineScope: CoroutineScope)
+    protected abstract suspend fun onEvent(event: E, send: SendFun, store: Store<S, A, E>, coroutineScope: CoroutineScope)
+
+    protected open fun onError(error: Throwable) {
+        throw error
+    }
 
     private suspend fun send(message: Message) {
         MessageHub.send(message)
     }
 
-    protected fun interface Send {
+    protected fun interface SendFun {
         suspend operator fun invoke(message: Message)
     }
 
@@ -62,8 +71,10 @@ abstract class MessageSendMiddleware<S : State, A : Action, E : Event> : Middlew
 
 @Suppress("unused")
 abstract class MessageReceiveMiddleware<S : State, A : Action, E : Event> : Middleware<S, A, E> {
+    private val exceptionHandler: CoroutineExceptionHandler = CoroutineExceptionHandler { _, exception -> onError(exception) }
+
     final override suspend fun onInit(store: Store<S, A, E>, coroutineScope: CoroutineScope) {
-        coroutineScope.launch {
+        coroutineScope.launch(exceptionHandler) {
             MessageHub.messages.collect {
                 receive(it, store, coroutineScope)
             }
@@ -71,6 +82,10 @@ abstract class MessageReceiveMiddleware<S : State, A : Action, E : Event> : Midd
     }
 
     protected abstract suspend fun receive(message: Message, store: Store<S, A, E>, coroutineScope: CoroutineScope)
+
+    protected open fun onError(error: Throwable) {
+        throw error
+    }
 
     final override suspend fun beforeActionDispatch(state: S, action: A) {}
     final override suspend fun afterActionDispatch(state: S, action: A, nextState: S) {}
