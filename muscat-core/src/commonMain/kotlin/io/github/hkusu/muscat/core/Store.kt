@@ -22,7 +22,7 @@ interface Event
 abstract class Store<S : State, A : Action, E : Event>(
     private val initialState: S,
     private val processInitialStateEnter: Boolean = true,
-    private val latestState: suspend (S) -> Unit = {},
+    private val latestState: suspend (state: S) -> Unit = {},
     private val coroutineScope: CoroutineScope = CoroutineScope(Dispatchers.Default + SupervisorJob()),
 ) {
     private val _state: MutableStateFlow<S> = MutableStateFlow(initialState)
@@ -49,13 +49,13 @@ abstract class Store<S : State, A : Action, E : Event>(
         }
     }
 
-    fun collectState(state: (S) -> Unit) {
+    fun collectState(state: (state: S) -> Unit) {
         coroutineScope.launch {
             this@Store.state.collect { state(it) }
         }
     }
 
-    fun collectEvent(event: (E) -> Unit) {
+    fun collectEvent(event: (event: E) -> Unit) {
         coroutineScope.launch {
             this@Store.event.collect { event(it) }
         }

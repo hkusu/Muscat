@@ -22,8 +22,6 @@ internal object MessageHub {
     }
 }
 
-internal val defaultExceptionHandler: CoroutineExceptionHandler = CoroutineExceptionHandler { _, _ -> }
-
 @Suppress("unused")
 abstract class MessageSendMiddleware<S : State, A : Action, E : Event> : Middleware<S, A, E> {
     private lateinit var store: Store<S, A, E>

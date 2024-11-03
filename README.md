@@ -107,7 +107,7 @@ Use `ComposeStore.handle()` method.
 Specify the target State using generics.
 
 ```
-store.handle<YourEvent.ShowToast> {
+store.handle<YourEvent.ShowToast> { event ->
     // do something..
 }
 ```
@@ -117,8 +117,8 @@ Event properties can be accessed with `this` scope.
 You can also subscribe to parent types.
 
 ```
-store.handle<YourEvent> {
-    when (this) {
+store.handle<YourEvent> { event ->
+    when (event) {
         is YourEvent.ShowToast -> {
           // do something..
         }
@@ -132,8 +132,7 @@ store.handle<YourEvent> {
 
 #### Preview on IDE
 
-Use `ComposeStore#createMock()` function.
-Specify the target State using the method argument.
+Use `ComposeStore#create()` function with target State.
 
 ```
 @Preview
