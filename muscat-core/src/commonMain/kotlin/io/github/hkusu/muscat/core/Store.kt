@@ -1,5 +1,6 @@
 package io.github.hkusu.muscat.core
 
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -23,6 +24,7 @@ abstract class Store<S : State, A : Action, E : Event>(
     private val initialState: S,
     private val processInitialStateEnter: Boolean = true,
     private val latestState: suspend (state: S) -> Unit = {},
+    private val onError: (error: Throwable) -> Unit = { throw it },
     private val coroutineScope: CoroutineScope = CoroutineScope(Dispatchers.Default + SupervisorJob()),
 ) {
     private val _state: MutableStateFlow<S> = MutableStateFlow(initialState)
@@ -40,9 +42,11 @@ abstract class Store<S : State, A : Action, E : Event>(
 
     private val mutex = Mutex()
 
+    private val exceptionHandler: CoroutineExceptionHandler = CoroutineExceptionHandler { _, exception -> onError(exception) }
+
     fun dispatch(action: A) {
         state // initialize if need
-        coroutineScope.launch {
+        coroutineScope.launch(exceptionHandler) {
             mutex.withLock {
                 onActionDispatched(currentState, action)
             }
@@ -50,13 +54,13 @@ abstract class Store<S : State, A : Action, E : Event>(
     }
 
     fun collectState(state: (state: S) -> Unit) {
-        coroutineScope.launch {
+        coroutineScope.launch(exceptionHandler) {
             this@Store.state.collect { state(it) }
         }
     }
 
     fun collectEvent(event: (event: E) -> Unit) {
-        coroutineScope.launch {
+        coroutineScope.launch(exceptionHandler) {
             this@Store.event.collect { event(it) }
         }
     }
@@ -67,14 +71,16 @@ abstract class Store<S : State, A : Action, E : Event>(
 
     protected open suspend fun onDispatch(state: S, action: A, emit: EmitFun<E>): S = state
 
-    protected open suspend fun onError(state: S, error: Throwable, emit: EmitFun<E>): S = state
+    protected open suspend fun onError(state: S, error: Throwable, emit: EmitFun<E>): S {
+        throw error
+    }
 
     protected fun dispose() {
         coroutineScope.cancel()
     }
 
     private fun init() {
-        coroutineScope.launch {
+        coroutineScope.launch(exceptionHandler) {
             mutex.withLock {
                 coroutineScope {
                     middlewares.map {
@@ -127,28 +133,24 @@ abstract class Store<S : State, A : Action, E : Event>(
             if (!inErrorHandling) {
                 onErrorOccurred(currentState, t)
             } else {
-                printNote(t)
+                throw t
             }
         }
     }
 
     private suspend fun onErrorOccurred(state: S, throwable: Throwable) {
-        try {
-            val nextState = processError(state, throwable)
+        val nextState = processError(state, throwable)
 
-            if (state::class != nextState::class) {
-                processStateExit(state)
-            }
+        if (state::class != nextState::class) {
+            processStateExit(state)
+        }
 
-            if (state != nextState) {
-                processStateChange(state, nextState)
-            }
+        if (state != nextState) {
+            processStateChange(state, nextState)
+        }
 
-            if (state::class != nextState::class) {
-                onStateEntered(nextState, inErrorHandling = true)
-            }
-        } catch (t: Throwable) {
-            printNote(t)
+        if (state::class != nextState::class) {
+            onStateEntered(nextState, inErrorHandling = true)
         }
     }
 
@@ -238,10 +240,6 @@ abstract class Store<S : State, A : Action, E : Event>(
             }
         }
         return nextState
-    }
-
-    private fun printNote(throwable: Throwable) {
-        println("[Tart] An error occurred during error handling. $throwable")
     }
 
     private suspend fun emit(event: E) {

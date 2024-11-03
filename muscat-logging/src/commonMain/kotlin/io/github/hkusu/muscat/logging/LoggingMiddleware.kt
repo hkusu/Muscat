@@ -20,7 +20,7 @@ open class LoggingMiddleware<S : State, A : Action, E : Event>(
     }
 
     override suspend fun afterStateChange(state: S, prevState: S) {
-        logger.log(level = level, tag = tag) { "State: $prevState -> $state" }
+        logger.log(level = level, tag = tag) { "State: $state <- $prevState" }
     }
 
     override suspend fun afterError(state: S, nextState: S, error: Throwable) {
