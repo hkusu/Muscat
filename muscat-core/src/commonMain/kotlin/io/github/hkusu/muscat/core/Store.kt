@@ -65,6 +65,10 @@ abstract class Store<S : State, A : Action, E : Event>(
         }
     }
 
+    fun dispose() {
+        coroutineScope.cancel()
+    }
+
     protected open suspend fun onEnter(state: S, emit: EmitFun<E>): S = state
 
     protected open suspend fun onExit(state: S, emit: EmitFun<E>) {}
@@ -73,10 +77,6 @@ abstract class Store<S : State, A : Action, E : Event>(
 
     protected open suspend fun onError(state: S, error: Throwable, emit: EmitFun<E>): S {
         throw error
-    }
-
-    protected fun dispose() {
-        coroutineScope.cancel()
     }
 
     private fun init() {
