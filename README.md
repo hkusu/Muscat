@@ -132,7 +132,7 @@ store.handle<YourEvent> { event ->
 
 #### Preview on IDE
 
-Use `ComposeStore#create()` function with target State.
+Use `ComposeStore#mock()` function with target State.
 
 ```
 @Preview
@@ -140,7 +140,7 @@ Use `ComposeStore#create()` function with target State.
 fun SomePreview() {
     MyApplicationTheme {
         YourChildComposableComponent(
-            store = ComposeStore.createMock(
+            store = ComposeStore.mock(
                 state = YourState.Stable,
             ),
         )

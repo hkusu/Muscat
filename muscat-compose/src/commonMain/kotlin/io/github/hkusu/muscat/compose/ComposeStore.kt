@@ -22,7 +22,7 @@ class ComposeStore<S : State, A : Action, E : Event> private constructor(
     inline fun <reified S2 : S> render(block: ComposeStore<S2, A, E>.() -> Unit) {
         if (state is S2) {
             block(
-                create(
+                mock(
                     state = state,
                     dispatch = dispatch,
                     event = event,
@@ -52,7 +52,7 @@ class ComposeStore<S : State, A : Action, E : Event> private constructor(
         }
 
         @Composable
-        fun <S : State, A : Action, E : Event> create(state: S, dispatch: (action: A) -> Unit = {}, event: Flow<E> = emptyFlow()): ComposeStore<S, A, E> {
+        fun <S : State, A : Action, E : Event> mock(state: S, dispatch: (action: A) -> Unit = {}, event: Flow<E> = emptyFlow()): ComposeStore<S, A, E> {
             return ComposeStore(
                 state = state,
                 dispatch = dispatch,
