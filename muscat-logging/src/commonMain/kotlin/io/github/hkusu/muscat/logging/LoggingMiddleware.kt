@@ -11,7 +11,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import co.touchlab.kermit.Logger.Companion as Kermit
 
-@Suppress("unused", "MemberVisibilityCanBePrivate")
+@Suppress("unused")
 open class LoggingMiddleware<S : State, A : Action, E : Event>(
     private val logger: Logger = DefaultLogger(),
     private val tag: String = "Tart",
@@ -41,6 +41,7 @@ open class LoggingMiddleware<S : State, A : Action, E : Event>(
         log(throwable = error) { "Error: $error" }
     }
 
+    @Suppress("MemberVisibilityCanBePrivate")
     protected fun log(severity: Logger.Severity = this.severity, tag: String = this.tag, throwable: Throwable? = null, message: () -> String) {
         coroutineScope.launch(exceptionHandler) {
             if (enable()) {
