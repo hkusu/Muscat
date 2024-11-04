@@ -1,18 +1,19 @@
 package io.github.hkusu.muscat.logging
 
 interface Logger {
-    fun log(
-        level: Level = Level.Debug,
-        tag: String = "Tart",
-        message: () -> String,
+    suspend fun log(
+        severity: Severity,
+        tag: String,
+        throwable: Throwable?,
+        message: String,
     )
 
-    enum class Level {
+    enum class Severity {
         Verbose,
         Debug,
         Info,
         Warn,
         Error,
-        Assert
+        Assert,
     }
 }

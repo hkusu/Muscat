@@ -26,7 +26,6 @@ internal object MessageHub {
 abstract class MessageSendMiddleware<S : State, A : Action, E : Event> : Middleware<S, A, E> {
     private lateinit var store: Store<S, A, E>
     private lateinit var coroutineScope: CoroutineScope
-
     private val exceptionHandler: CoroutineExceptionHandler = CoroutineExceptionHandler { _, exception -> onError(exception) }
 
     final override suspend fun onInit(store: Store<S, A, E>, coroutineScope: CoroutineScope) {

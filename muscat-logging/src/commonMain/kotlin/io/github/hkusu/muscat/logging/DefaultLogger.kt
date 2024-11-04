@@ -4,21 +4,21 @@ import co.touchlab.kermit.Severity
 import co.touchlab.kermit.Logger.Companion as Kermit
 
 internal class DefaultLogger : Logger {
-    override fun log(level: Logger.Level, tag: String, message: () -> String) {
+    override suspend fun log(severity: Logger.Severity, tag: String, throwable: Throwable?, message: String) {
         Kermit.log(
-            severity = level.severity(),
+            severity = severity.map(),
             tag = tag,
-            throwable = null,
-            message = message(),
+            throwable = throwable,
+            message = message,
         )
     }
 
-    private fun Logger.Level.severity() = when (this) {
-        Logger.Level.Verbose -> Severity.Verbose
-        Logger.Level.Debug -> Severity.Debug
-        Logger.Level.Info -> Severity.Info
-        Logger.Level.Warn -> Severity.Warn
-        Logger.Level.Error -> Severity.Error
-        Logger.Level.Assert -> Severity.Assert
+    private fun Logger.Severity.map() = when (this) {
+        Logger.Severity.Verbose -> Severity.Verbose
+        Logger.Severity.Debug -> Severity.Debug
+        Logger.Severity.Info -> Severity.Info
+        Logger.Severity.Warn -> Severity.Warn
+        Logger.Severity.Error -> Severity.Error
+        Logger.Severity.Assert -> Severity.Assert
     }
 }
