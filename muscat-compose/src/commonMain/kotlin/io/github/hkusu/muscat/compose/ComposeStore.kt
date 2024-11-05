@@ -16,7 +16,7 @@ import kotlinx.coroutines.flow.filter
 class ComposeStore<S : State, A : Action, E : Event> private constructor(
     val state: S,
     val dispatch: (action: A) -> Unit,
-    val event: Flow<E>,
+    val eventFlow: Flow<E>,
 ) {
     @Composable
     inline fun <reified S2 : S> render(block: ComposeStore<S2, A, E>.() -> Unit) {
@@ -25,7 +25,7 @@ class ComposeStore<S : State, A : Action, E : Event> private constructor(
                 mock(
                     state = state,
                     dispatch = dispatch,
-                    event = event,
+                    eventFlow = eventFlow,
                 ),
             )
         }
@@ -34,7 +34,7 @@ class ComposeStore<S : State, A : Action, E : Event> private constructor(
     @Composable
     inline fun <reified E2 : E> handle(crossinline block: ComposeStore<S, A, E>.(event: E2) -> Unit) {
         LaunchedEffect(Unit) {
-            event.filter { it is E2 }.collect {
+            eventFlow.filter { it is E2 }.collect {
                 block(this@ComposeStore, it as E2)
             }
         }
@@ -47,16 +47,16 @@ class ComposeStore<S : State, A : Action, E : Event> private constructor(
             return ComposeStore(
                 state = state,
                 dispatch = store::dispatch,
-                event = store.event,
+                eventFlow = store.event,
             )
         }
 
         @Composable
-        fun <S : State, A : Action, E : Event> mock(state: S, dispatch: (action: A) -> Unit = {}, event: Flow<E> = emptyFlow()): ComposeStore<S, A, E> {
+        fun <S : State, A : Action, E : Event> mock(state: S, dispatch: (action: A) -> Unit = {}, eventFlow: Flow<E> = emptyFlow()): ComposeStore<S, A, E> {
             return ComposeStore(
                 state = state,
                 dispatch = dispatch,
-                event = event,
+                eventFlow = eventFlow,
             )
         }
     }
